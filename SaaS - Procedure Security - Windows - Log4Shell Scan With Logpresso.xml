@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Security - Windows - Log4Shell Scan With Logpresso" treePres="3" id="632998392" folderId="693123871084825" treeFullPath="Upstream Power Pack 2021-10-30 (Almost Xmas Edition).Automation For Windows.Security Assesments">
+    <Body description="">
+      <If description="Procedure description: Agent Procedure to scan for Log4js JAR files on the system volume(s)&#xD;&#xA;Kaseya customer value: Security audits, service delivery compliance, troubleshooting and purposes.&#xD;&#xA;End user value: Limiting the risks productivity loss and productivity issues relating to Log4Shell vulnerabilities.&#xD;&#xA;Dependencies: Windows OS, vcruntime140.dll runtime (part of the C++ redistributable package)&#xD;&#xA;This script is using &quot;https://github.com/logpresso/CVE-2021-44228-Scanner&quot;&#xD;&#xA;Report options: Agent Procedure Log, &quot;UPSTREAM: Log4Shell: &quot;&#xD;&#xA;Maintainer: powerpack@upstream.se Last updated: 2021-12-16&#xD;&#xA;------------------------------------------------------------------------------------------------------------&#xD;&#xA;Close any currently running scanner and restart the task.">
+        <Condition name="ApplicationRunning">
+          <Parameter xsi:type="StringParameter" name="ApplicationName" value="log4j2-scan.exe" />
+        </Condition>
+        <Then>
+          <Statement name="CloseApplication" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="ApplicationName" value="log4j2-scan.exe" />
+          </Statement>
+        </Then>
+      </If>
+      <Statement description="Let's download a Log4Shell scanner from: https://github.com/logpresso/CVE-2021-44228-Scanner" name="GetURL" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="URL" value="https://github.com/logpresso/CVE-2021-44228-Scanner/releases/download/v1.5.0/logpresso-log4j2-scan-1.5.0-win64.7z" />
+        <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#\LogPresso.7z" />
+        <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+      </Statement>
+      <Statement name="Unzip file" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempDir#\LogPresso.7z" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="#vAgentConfiguration.agentTempDir#\" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="true" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\LogPresso.7z" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempDir#\log4j2-scan.exe --all-drives &gt;&gt;#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement description="Pause the Procedure for 15 minutes wating for Log4j2 scanner to complete. This time can be adjusted." name="PauseScript" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="IntegerParameter" name="Seconds" value="900" />
+      </Statement>
+      <If description="">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan: Error: &quot;#vAgentConfiguration.agentTempDir#\Log4ShellScan.result&quot; dows not exist. Check if vcruntime140.dll runtime is installed (part of the C++ redistributable package)." />
+          </Statement>
+        </Then>
+        <Else>
+          <If description="">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+              <Parameter xsi:type="StringParameter" name="Value" value="Completed in" />
+            </Condition>
+            <Then>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan Success: &quot;#vAgentConfiguration.agentTempDir#\Log4ShellScan.result&quot; does exist." />
+              </Statement>
+              <Statement name="GetVariable" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
+                <Parameter xsi:type="StringParameter" name="VariableName" value="GLOBAL:Log4ShellScan" />
+              </Statement>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan: Result: #GLOBAL:Log4ShellScan#" />
+              </Statement>
+              <If description="">
+                <Condition name="TestFile">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="Found 0 vulnerable files" />
+                </Condition>
+                <Then>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan: Result: UPSTREAM: Log4Shell: Scan: Result: Found Vulnerable Files. Alert Will Be Raised." />
+                  </Statement>
+                  <Statement name="GetVariable" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="YES" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="GLOBAL:Log4ShellVulnerabilityFound" />
+                  </Statement>
+                </Then>
+              </If>
+              <If description="">
+                <Condition name="TestFile">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="Found 0 potentially vulnerable files" />
+                </Condition>
+                <Then>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan: Result: Found Potentially Vulnerable Files. No Alert Will Be Raised If Only Potential Vulnerabilites Are Found." />
+                  </Statement>
+                </Then>
+              </If>
+              <If description="The steps below will generate Alert, Ticket and email with customized subject and message.&#xD;&#xA;Set the subject for the Alert and Ticket.">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#GLOBAL:Log4ShellVulnerabilityFound#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="YES" />
+                </Condition>
+                <Then>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan: Result: Generating Alert" />
+                  </Statement>
+                  <Statement name="GetVariable" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="Log4Shell Vulnerabilities Detected" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="alertSubject" />
+                  </Statement>
+                  <Statement description="Set body for the Alert and Ticket." name="GetVariable" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="#GLOBAL:Log4ShellScan#" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="alertBody" />
+                  </Statement>
+                  <Statement description="Generate a Kaseya BMS ticket in addition to Alert in the Monitor module. Disabled by default." name="GetVariable" continueOnFail="false" osType="None">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="YES" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="alertGenerateTicket" />
+                  </Statement>
+                  <Statement description="Create Alert in the Monitor module." name="SendAlert" continueOnFail="false" osType="Windows" />
+                  <Statement description="Send email to your designated support email. Disabled by default." name="SendEmail" continueOnFail="false" osType="None">
+                    <Parameter xsi:type="StringParameter" name="To" value="your-support-mail-here" />
+                    <Parameter xsi:type="StringParameter" name="Subject" value="Log4Shell Vulnerability Detected on #vMachine.Machine_GroupID#" />
+                    <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#GLOBAL:Log4ShellVulnerabilityFound#" />
+                  </Statement>
+                </Then>
+              </If>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan: Error: &quot;#vAgentConfiguration.agentTempDir#\Log4ShellScan.result&quot; exist but does not include the ending line. You may have to raise the amount of secons int PauseProcedure step." />
+              </Statement>
+            </Else>
+          </If>
+        </Else>
+      </If>
+      <Statement name="DeleteFile" continueOnFail="true" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\log4j2-scan.exe" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="true" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
+      </Statement>
+      <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Comment" value="UPSTREAM: Log4Shell: Scan: The Agent Procedure hit the last row and will now exit. Evaluate the Agent Procedure log output." />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScExport>
