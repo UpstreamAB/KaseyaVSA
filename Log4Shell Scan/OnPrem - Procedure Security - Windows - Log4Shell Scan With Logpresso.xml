@@ -13,17 +13,17 @@
         </Then>
       </If>
       <Statement description="Let's download a Log4Shell scanner from: https://github.com/logpresso/CVE-2021-44228-Scanner" name="GetURL" continueOnFail="false" osType="Windows">
-        <Parameter xsi:type="StringParameter" name="URL" value="https://github.com/logpresso/CVE-2021-44228-Scanner/releases/download/v1.6.3/logpresso-log4j2-scan-1.6.3-win64.7z" />
-        <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#\LogPresso.7z" />
+        <Parameter xsi:type="StringParameter" name="URL" value="https://github.com/logpresso/CVE-2021-44228-Scanner/releases/download/v2.3.6/logpresso-log4j2-scan-2.3.6-win64.zip" />
+        <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#\LogPresso.zip" />
         <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
       </Statement>
       <Statement name="Unzip file" continueOnFail="false" osType="Windows">
-        <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempDir#\LogPresso.7z" />
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempDir#\LogPresso.zip" />
         <Parameter xsi:type="StringParameter" name="Parameter2" value="#vAgentConfiguration.agentTempDir#\" />
         <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
       </Statement>
       <Statement name="DeleteFile" continueOnFail="true" osType="Windows">
-        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\LogPresso.7z" />
+        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\LogPresso.zip" />
       </Statement>
       <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
         <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempDir#\log4j2-scan.exe --all-drives &gt;&gt;#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
