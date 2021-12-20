@@ -23,7 +23,7 @@
         <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
       </Statement>
       <Statement name="DeleteFile" continueOnFail="true" osType="Windows">
-        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\LogPresso.7z" />
+        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\LogPresso.zip" />
       </Statement>
       <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
         <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempDir#\log4j2-scan.exe --all-drives &gt;&gt;#vAgentConfiguration.agentTempDir#\Log4ShellScan.result" />
