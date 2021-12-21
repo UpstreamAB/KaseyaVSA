@@ -1,4 +1,4 @@
-# KaseyaVSA
+# Kaseya VSA
 Public repository for various Kaseya VSA specific content created by Upstream.
 
 For more free content, please visit: https://www.upstreampowerpack.com/power-pack-free
